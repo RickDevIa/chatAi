@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Conversoul AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barrio&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet"> 
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+    <div id="chat-container">
+      <h1>Conversoul Ai</h1>
+      <div id="chat-messages"></div>
+      <div id="chat-input">
+        <input type="text" id="message-input" placeholder="Digite sua mensagem">
+        <button id="send-button">Enviar</button>
+      </div>
+    </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+
+        sendButton.addEventListener('click', sendMessage);
+        document.getElementById('message-input').addEventListener('keypress', function(event) {
+          if (event.key === 'Enter') {
+            sendMessage();
+          }
+        });
+
+        async function sendMessage() {
+          const loadingOverlay = document.getElementById('loading-overlay');
+          loadingOverlay.style.display = 'flex';
+          const messageInput = document.getElementById('message-input');
+          const message = messageInput.value;
+          messageInput.value = '';
+          if (!message) return;
+
+          const messageDiv = document.createElement('div');
+          messageDiv.classList.add('message-div', 'user-message');
+          chatMessages.appendChild(messageDiv);
+          const messageSpan = document.createElement('span'); // Create the span
+          messageSpan.textContent = `Você: ${message}`; // Add the text content to the span
+          messageDiv.appendChild(messageSpan);           // Append the span to the div
+          const title = document.createElement('span');
+          title.textContent = 'Você:' ;
+          messageSpan.textContent = message;      // Only the message text in the span
+          messageDiv.appendChild(title);     // Append the h3 first
+          messageDiv.appendChild(messageSpan); // Then append the span
+          const timestampSpan = document.createElement('span');
+          const timestamp = new Date().toLocaleTimeString();
+          timestampSpan.textContent = timestamp;
+          timestampSpan.classList.add('timestamp');
+          messageDiv.appendChild(timestampSpan); // Add timestamp inside the message div
+
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+
+          try {
+            const FUNCTION_URL = "http://localhost:3000/chat";
+            const response = await fetch(FUNCTION_URL, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ chat: message, history: [] })
+            });
+            const data = await response.json();
+            if (data && data.text) {
+              const loadingOverlay = document.getElementById('loading-overlay');
+              loadingOverlay.style.display = 'none';
+              const text = data.text;
+              const responseDiv = document.createElement('div');
+              responseDiv.classList.add('message-div', 'gemini-message');
+              chatMessages.appendChild(responseDiv);
+              const messageSpan = document.createElement('span');
+              const title = document.createElement('span');
+              title.textContent = 'Conversoul:' ;
+              messageSpan.textContent = text;      // Only the message text in the span
+              responseDiv.appendChild(title);     // Append the h3 first
+              responseDiv.appendChild(messageSpan); // Then append the span
+              const timestampSpan = document.createElement('span');
+              const timestamp = new Date().toLocaleTimeString();
+              timestampSpan.textContent = timestamp;
+              timestampSpan.classList.add('timestamp');
+              responseDiv.appendChild(timestampSpan);
+
+              chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+          } catch (error) {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.display = 'none';
+            console.error("Error calling function:", error);
+            let errorMessage = `Erro: ${error.message}`;
+            if (error instanceof Response) {
+                try {
+                  const errorText = await error.text();
+                  errorMessage = `Erro: ${error.status} - ${error.statusText} - ${errorText}`;
+                } catch (textError) {
+                  errorMessage = `Erro: ${error.message}`;
+                }
+            } else {
+              errorMessage = `Erro: ${error.message}`;
+            }
+            const errorDiv = document.createElement('div');
+            errorDiv.textContent = errorMessage;
+            chatMessages.appendChild(errorDiv);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
