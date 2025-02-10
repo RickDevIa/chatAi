@@ -48,4 +48,4 @@ O aplicativo inicialmente apresentou um erro 500 Internal Server Error ao enviar
    require('dotenv').config();
    \`\`\`
 
-Após aplicar estes passos, a \`GOOGLE_API_KEY\` é carregada corretamente, e o aplicativo de chat funciona sem o erro 500.
+Após aplicar estes passos, a \`GOOGLE_API_KEY\` é carregada corretamente, e o aplicativo de chat funciona sem o erro 500.# chatAi
